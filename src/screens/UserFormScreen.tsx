@@ -1,0 +1,23 @@
+import { useEffect, useState } from 'react';
+import { Alert, Image, KeyboardAvoidingView, Modal, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import type { User, UserFields } from '../types';
+import { pickAndCompressImage } from '../utils/image';
+
+type Props = { visible: boolean; user: User | null; loading: boolean; onClose: () => void; onSave: (data: UserFields) => Promise<void> };
+
+export function UserFormScreen({ visible, user, loading, onClose, onSave }: Props) {
+  const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [name, setName] = useState(''); const [image, setImage] = useState('');
+  useEffect(() => { setEmail(user?.email ?? ''); setPassword(user?.matkhau ?? ''); setName(user?.hoten ?? ''); setImage(user?.hinhanh ?? ''); }, [user, visible]);
+  const chooseImage = async () => { try { const selected = await pickAndCompressImage(); if (selected) setImage(selected); } catch (error) { Alert.alert('Không thể chọn ảnh', error instanceof Error ? error.message : 'Vui lòng thử lại.'); } };
+  const save = async () => { if (!email.trim() || !password || !name.trim()) { Alert.alert('Thiếu thông tin', 'Hãy nhập đủ email, mật khẩu và họ tên.'); return; } await onSave({ email, matkhau: password, hoten: name, hinhanh: image }); };
+  return <Modal animationType="slide" onRequestClose={onClose} transparent visible={visible}><View style={styles.overlay}><SafeAreaView style={styles.safe}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboard}><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled"><View style={styles.header}><View><Text style={styles.eyebrow}>QUẢN LÝ NGƯỜI DÙNG</Text><Text style={styles.title}>{user ? 'Sửa người dùng' : 'Thêm người dùng'}</Text></View><Pressable accessibilityLabel="Đóng" onPress={onClose} style={styles.close}><MaterialCommunityIcons color="#4B5563" name="close" size={23} /></Pressable></View>
+    <Text style={styles.label}>Họ và tên</Text><TextInput onChangeText={setName} placeholder="Nguyễn Văn A" placeholderTextColor="#9CA3AF" style={styles.input} value={name} />
+    <Text style={styles.label}>Email</Text><TextInput autoCapitalize="none" keyboardType="email-address" onChangeText={setEmail} placeholder="example@gmail.com" placeholderTextColor="#9CA3AF" style={styles.input} value={email} />
+    <Text style={styles.label}>Mật khẩu</Text><TextInput onChangeText={setPassword} placeholder="Nhập mật khẩu" placeholderTextColor="#9CA3AF" secureTextEntry style={styles.input} value={password} />
+    <Text style={styles.label}>Hình ảnh</Text><Pressable onPress={() => void chooseImage()} style={styles.imageButton}><MaterialCommunityIcons color="#4F46E5" name="image-plus" size={19} /><Text style={styles.imageButtonText}>Chọn ảnh từ thiết bị</Text></Pressable>{image ? <Image source={{ uri: image }} style={styles.preview} /> : null}
+    <Pressable disabled={loading} onPress={() => void save()} style={styles.button}><Text style={styles.buttonText}>{loading ? 'Đang lưu...' : 'Lưu người dùng'}</Text></Pressable>
+  </ScrollView></KeyboardAvoidingView></SafeAreaView></View></Modal>;
+}
+
+const styles = StyleSheet.create({ overlay: { alignItems: 'flex-end', backgroundColor: 'rgba(17, 24, 39, 0.32)', flex: 1, justifyContent: 'flex-end' }, safe: { backgroundColor: '#fff', flex: 1, maxWidth: Platform.OS === 'web' ? 330 : 380, width: Platform.OS === 'web' ? 330 : '100%' }, keyboard: { flex: 1 }, content: { padding: 26 }, header: { alignItems: 'flex-start', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }, eyebrow: { color: '#4F46E5', fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8 }, title: { color: '#111827', fontSize: 25, fontWeight: '800' }, close: { alignItems: 'center', minHeight: 44, justifyContent: 'center', width: 44 }, label: { color: '#111827', fontSize: 13, fontWeight: '700', marginBottom: 8, marginTop: 18 }, input: { backgroundColor: '#fff', borderColor: '#E5E7EB', borderRadius: 12, borderWidth: 1, color: '#111827', fontSize: 15, minHeight: 44, paddingHorizontal: 14 }, imageButton: { alignItems: 'center', backgroundColor: '#EEF0FF', borderRadius: 12, flexDirection: 'row', justifyContent: 'center', minHeight: 44 }, imageButtonText: { color: '#3730A3', fontWeight: '700', marginLeft: 8 }, preview: { borderRadius: 12, height: 180, marginTop: 14, width: '100%' }, button: { alignItems: 'center', backgroundColor: '#4F46E5', borderRadius: 12, marginTop: 28, minHeight: 48, justifyContent: 'center' }, buttonText: { color: '#fff', fontSize: 15, fontWeight: '800' } });

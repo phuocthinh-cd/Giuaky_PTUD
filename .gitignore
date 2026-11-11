@@ -1,0 +1,10 @@
+node_modules/
+.expo/
+dist/
+users-export.json
+serviceAccountKey.json
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.DS_Store
